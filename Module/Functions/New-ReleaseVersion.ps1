@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0
+.VERSION 1.1
 
 .GUID d8aefbbf-d092-433b-8baa-3db3256a8734
 
@@ -188,15 +188,14 @@ elseif ($sourceBranchName -match "^release\/\d+\.\d+$") {
 
         if ($lastGitTagVer -ge $releaseVersion) {
 
-
             if($lastGitTagCommitIdReference -eq $refCommitId) {
                 Write-Verbose "Release version corresponds to latest tag version for the reference commitId=$($refCommitId)"
                 [version]$releaseVersion = $lastGitTagVer
             }
-            
-            Write-Verbose "Increse Patch version accoring with the latest tag version"
-            [version]$releaseVersion = "$($lastGitTagVer.Major).$($lastGitTagVer.Minor).$($lastGitTagVer.Build +1)"
-        
+            else {
+                Write-Verbose "Increse Patch version according with the latest tag version"
+                [version]$releaseVersion = "$($lastGitTagVer.Major).$($lastGitTagVer.Minor).$($lastGitTagVer.Build +1)"
+            }
         }
     }
 }
