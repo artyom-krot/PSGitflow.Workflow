@@ -65,6 +65,16 @@ Function New-ReleaseVersion {
                 from the release branch will be applied and patch version will be increases {majorVersion}.{minorVersion}.1
         (Example: most recent release branch - release/1.1 => releaseVersion 1.1.1 will be generated)
 
+    Case 6# sourceGitBranch = master:
+    check existance of any release tag
+    get the version from the latest release tag 
+        
+        case a. If tag is missing, apply default initial release version
+        (Example: releaseVersion will be 0.1.0)
+
+        case b. If tag exists, apply {majorVersion}.{minorVersion} from the tag.
+        (Example: tag = release/1.0.1 => release_version  should be 1.0.1)
+
     ================================================================================================
 .INPUTS
     -rootGitDir <string[]>
