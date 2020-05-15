@@ -15,5 +15,6 @@ Description:
 
 # export function New-ReleaseVersion
 . $PSScriptRoot\Functions\New-ReleaseVersion.ps1
+. $PSScriptRoot\Functions\Set-ReleaseArtifactName.ps1
 
 Export-ModuleMember -Function *

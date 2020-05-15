@@ -83,7 +83,7 @@ Function New-ReleaseVersion {
     
     -refCommitId <string[]>
 .OUTPUTS
-    variable $releaseVersion with release version 
+    variable $releaseVersion with release version value
 .NOTES
     
   
