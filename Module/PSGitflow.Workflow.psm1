@@ -1,6 +1,6 @@
 <#
 
-Copyright (c) 2019 Artsiom Krot. All rights reserved..
+Copyright (c) 2020 Artsiom Krot. All rights reserved..
 
 Module Name:
 
@@ -16,5 +16,7 @@ Description:
 # export function New-ReleaseVersion
 . $PSScriptRoot\Functions\New-ReleaseVersion.ps1
 . $PSScriptRoot\Functions\Set-ReleaseArtifactName.ps1
+. $PSScriptRoot\Functions\Invoke-GitFlowWorkflow.ps1
+. $PSScriptRoot\Functions\parameters.ps1
 
 Export-ModuleMember -Function *
