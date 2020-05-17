@@ -1,13 +1,15 @@
 
 <#PSScriptInfo
 
-.VERSION 1.0
+.VERSION 1.1
 
 .GUID 697ba018-f448-4a51-911c-48723fa8b257
 
 .AUTHOR Artsiom Krot
 
 .COPYRIGHT Copyright (c) 2020 Artsiom Krot. All rights reserved.
+
+.PROJECTURI https://github.com/artyom-krot/PSGitflow.Workflow
 
 .RELEASENOTES
 
@@ -22,7 +24,7 @@ Script file name:
 <# 
 
 .DESCRIPTION 
- The script is an integral part of PS.GitFlow solution (https://github.com/artyom-krot/PS.Gitflow) 
+    The script is an integral part of PS.GitFlow solution (https://github.com/artyom-krot/PS.Gitflow) 
 
 #> 
 
@@ -35,17 +37,19 @@ Function Set-ReleaseArtifactName {
     Set-ReleaseArtifactName defines generalized artifact name, like web.api.1.1.0-rc-235
 
 .INPUTS
-    -solutionId <string[]>
+    -solutionName <string[]>
     -releaseVersion <string[]>
-    -sourceGitBranch <string[]>
+    -branch <string[]>
     -buildId <string[]>
 .OUTPUTS
-    variable $releaseArtifactName with release version 
+    variable $releaseArtifactName and environment variable RELEASE_ARTIFACTNAME with the same value
 .NOTES
     
   
 .EXAMPLE
-    Set-ReleaseArtifactName -solutionId "web.api" -releaseVersion "0.1.0" -sourceGitBranch refs/heads/develop -buildId "12345"
+    Set-ReleaseArtifactName -solutionName "web.api" -releaseVersion "0.1.0" -branch refs/heads/develop -buildId "12345"
+    
+    web.api.0.1.0-develop.12345
 
 #>
 
@@ -54,7 +58,7 @@ param(
     [parameter(Position = 0, Mandatory = $true, HelpMessage="Short name of solution")]
     [ValidateNotNullOrEmpty()]
     [string]
-    $solutionId,
+    $solutionName,
 
     [parameter(Position = 1, Mandatory = $true, HelpMessage="release version in Semver standard")]
     [ValidateNotNullOrEmpty()]
@@ -64,7 +68,7 @@ param(
     [parameter(Position = 2, Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]
-    $sourceGitBranch,
+    $branch,
 
     [parameter(Position = 3, Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
@@ -106,10 +110,10 @@ function Get-ShortBranchName (
 $initialLocation = Get-Location
 
 # make branch name shorter
-$sourceBranchName = Get-ShortBranchName -sourceBranchName $sourceGitBranch
+$sourceBranchName = Get-ShortBranchName -sourceBranchName $branch
 
 # generate artifact name 
-$releaseArtifactName = "$solutionId.$($releaseVersion.Major).$($releaseVersion.Minor).$($releaseVersion.Build)-$SourceBranchName-$buildId"
+$releaseArtifactName = "$solutionName.$($releaseVersion.Major).$($releaseVersion.Minor).$($releaseVersion.Build)-$SourceBranchName-$buildId"
 
 
 Write-Verbose "Generated artifact name: $releaseArtifactName"
@@ -117,8 +121,8 @@ Write-Verbose "Generated artifact name: $releaseArtifactName"
 #get back to the previous location
 Set-Location $initialLocation
 
-# set new environment variable releaseVersion
-$Env:releaseArtifactName = $releaseArtifactName
+# set new environment variable RELEASE_ARTIFACTNAME
+$Env:RELEASE_ARTIFACTNAME = $releaseArtifactName
 
 return $releaseArtifactName
 

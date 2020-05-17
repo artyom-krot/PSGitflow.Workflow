@@ -9,6 +9,8 @@
 .COPYRIGHT
 Copyright (c) 2019 Artsiom Krot. All rights reserved.
 
+.PROJECTURI https://github.com/artyom-krot/PSGitflow.Workflow
+
 Script file name:
 
     New-ReleaseVersion.ps1
@@ -29,13 +31,13 @@ Function New-ReleaseVersion {
 
     Version generation logic:
     ================================================================================================
-    Case 1# sourceGitBranch  hotfix/{taskNumber}-{short description [0-9A-Za-z-]*}:
+    Case 1# branch  hotfix/{taskNumber}-{short description [0-9A-Za-z-]*}:
         Info:   hotfix branch should be created only for the release, that currently used in production. 
                 After release was deployed on production the code should be merged from release/{majorVersion}.{minorVersion} to master and tag to be applied tag=release/{majorVersion}.{minorVersion}.{patchVersion}
         
         Validate latest release tag in the repository. Increase patch version based on the version in most recent release tag
     
-    Case 2# sourceGitBranch = release/{majorVersion}.{minorVersion}:
+    Case 2# branch = release/{majorVersion}.{minorVersion}:
     check existance of any release tag
     get the version from the current release branch 
         
@@ -45,7 +47,7 @@ Function New-ReleaseVersion {
         case b. If tag exists, apply {majorVersion}.{minorVersion} from the tag and increase patch version.
         (Example: release/1.0 and tag=1.1.0 => release_version  should be 1.1.1)
 
-    Case 3# sourceGitBranch = develop
+    Case 3# branch = develop
         case a. If there is no any release/* branch, default release version 0.1.0 will be applied
 
         case b. If most recent release/* branch exist, apply {majorVersion} from release branch and increase minor version {minorVersion} + 1
@@ -54,10 +56,10 @@ Function New-ReleaseVersion {
         Info: patch version always should be 0 for the version from develop branch.
 
         
-    Case 4# sourceGitBranch feature/{taskNumber}-{short description [0-9A-Za-z-]*}:
+    Case 4# branch feature/{taskNumber}-{short description [0-9A-Za-z-]*}:
         The same logic as for develop branch will be applied, because feature/* branches should be created from develop branch only.
 
-    Case 5# sourceGitBranch bugfix/{taskNumber}-{short description [0-9A-Za-z-]*}:
+    Case 5# branch bugfix/{taskNumber}-{short description [0-9A-Za-z-]*}:
         case a. If bugfix branch was created from develop branch, than the same logic as for develop branch will be applied.
         (Example: develop - branche is source branch for the bugfix; most recent release branch - release/1.0 => releaseVersion 1.1.0 will be generated)
 
@@ -65,7 +67,7 @@ Function New-ReleaseVersion {
                 from the release branch will be applied and patch version will be increases {majorVersion}.{minorVersion}.1
         (Example: most recent release branch - release/1.1 => releaseVersion 1.1.1 will be generated)
 
-    Case 6# sourceGitBranch = master:
+    Case 6# branch = master:
     check existance of any release tag
     get the version from the latest release tag 
         
@@ -77,18 +79,18 @@ Function New-ReleaseVersion {
 
     ================================================================================================
 .INPUTS
-    -rootGitDir <string[]>
+    -rootDir <string[]>
 
-    -sourceGitBranch <string[]>
+    -branch <string[]>
     
-    -refCommitId <string[]>
+    -commit <string[]>
 .OUTPUTS
-    variable $releaseVersion with release version value
+    variable $releaseVersion and environment variable RELEASE_VERSION with the same release version value
 .NOTES
     
   
 .EXAMPLE
-    New-ReleaseVersion -rootGitDir C:\gitrepos\myrepo -sourceGitBranch refs/heads/develop -refCommitId 1a532017421e8dsf4d3f18ec1ddc5fe4e655d575
+    New-ReleaseVersion -rootDir C:\gitrepos\myrepo -branch refs/heads/develop -commit 1a532017421e8dsf4d3f18ec1ddc5fe4e655d575
 
     Major  Minor  Build  Revision
     -----  -----  -----  --------
@@ -101,17 +103,17 @@ param(
     [ValidateNotNullOrEmpty()]
     [ValidateScript({ Test-Path -Path $_ -PathType Container })]
     [string]
-    $rootGitDir,
+    $rootDir,
 
     [parameter(Position = 1, Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]
-    $sourceGitBranch,
+    $branch,
 
     [parameter(Position = 2, Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]
-    $refCommitId
+    $commit
 )
 
 #region functions
@@ -137,13 +139,13 @@ Function Get-LastReleaseTag {
 
 $initialLocation = Get-Location
 
-Set-Location $rootGitDir
-Write-Verbose "Root directory: $rootGitDir."
+Set-Location $rootDir
+Write-Verbose "Root directory: $rootDir."
 
-Write-Verbose "Processing Branch: $sourceGitBranch."
-$sourceBranchName = $sourceGitBranch.Replace('refs/heads/', '')
+Write-Verbose "Processing Branch: $branch."
+$sourceBranchName = $branch.Replace('refs/heads/', '')
 
-Write-Verbose "List all avaliable remote branches for the current git repo: $rootGitDir"
+Write-Verbose "List all avaliable remote branches for the current git repo: $rootDir"
 try {
     $remoteBranchesList = @()
     git branch -r | ForEach-Object {
@@ -155,7 +157,7 @@ catch {
     Write-error "$($_.Exception.Message)"
 }
 
-# Case 1# sourceGitBranch  hotfix/{taskNumber}-{short description [0-9A-Za-z-]*}
+# Case 1# branch  hotfix/{taskNumber}-{short description [0-9A-Za-z-]*}
 if ($sourceBranchName -like "hotfix/*") {
 
     Write-Verbose "Processing source branch name: $sourceBranchName."
@@ -174,7 +176,7 @@ if ($sourceBranchName -like "hotfix/*") {
     }
 }
 
-# Case 2# sourceGitBranch = release/{majorVersion}.{minorVersion}
+# Case 2# branch = release/{majorVersion}.{minorVersion}
 elseif ($sourceBranchName -match "^release\/\d+\.\d+$") {
     
     Write-Verbose "Processing source branch name: $sourceBranchName."
@@ -198,8 +200,8 @@ elseif ($sourceBranchName -match "^release\/\d+\.\d+$") {
 
         if ($lastGitTagVer -ge $releaseVersion) {
 
-            if($lastGitTagCommitIdReference -eq $refCommitId) {
-                Write-Verbose "Release version corresponds to latest tag version for the reference commitId=$($refCommitId)"
+            if($lastGitTagCommitIdReference -eq $commit) {
+                Write-Verbose "Release version corresponds to latest tag version for the reference commitId=$($commit)"
                 [version]$releaseVersion = $lastGitTagVer
             }
             else {
@@ -209,9 +211,9 @@ elseif ($sourceBranchName -match "^release\/\d+\.\d+$") {
         }
     }
 }
-# Case 3# sourceGitBranch = develop
+# Case 3# branch = develop
 # and
-# Case 4# sourceGitBranch feature/{taskNumber}-{short description [0-9A-Za-z-]*}
+# Case 4# branch feature/{taskNumber}-{short description [0-9A-Za-z-]*}
 elseif ($sourceBranchName -like "develop" -or $sourceBranchName -like "feature/*") {
 
     # Ensure proper sorting in cases when versions have more than one digit
@@ -237,14 +239,14 @@ elseif ($sourceBranchName -like "develop" -or $sourceBranchName -like "feature/*
     }
 }
 
-# Case 5# sourceGitBranch bugfix/{taskNumber}-{short description [0-9A-Za-z-]*}
+# Case 5# branch bugfix/{taskNumber}-{short description [0-9A-Za-z-]*}
 elseif ($sourceBranchName -like "bugfix/*") {
 
     Write-Verbose "Processing source branch name: $sourceBranchName."
 
     # get fork point with develop branch
     try {
-        $forkPoint = git merge-base --fork-point origin/develop origin/$sourceGitBranch
+        $forkPoint = git merge-base --fork-point origin/develop origin/$branch
     }
     Catch {
         $_.Exception;
@@ -278,7 +280,7 @@ elseif ($sourceBranchName -like "bugfix/*") {
 
         foreach ($releaseBranch in $allReleaseBranches) {
 
-            $forkPoint = git merge-base --fork-point origin/$releaseBranch origin/$sourceGitBranch
+            $forkPoint = git merge-base --fork-point origin/$releaseBranch origin/$branch
 
             # apply version according with the release branch that has fork point with bugfix branch and increase patch version
             if (-Not [string]::IsNullOrEmpty($forkPoint)) {
@@ -294,7 +296,7 @@ elseif ($sourceBranchName -like "bugfix/*") {
     }
 }
 
-# Case 6# sourceGitBranch = master
+# Case 6# branch = master
 elseif ($sourceBranchName -like "master") {
 
     Write-Verbose "Processing source branch name: $sourceBranchName."
@@ -309,7 +311,7 @@ elseif ($sourceBranchName -like "master") {
         $lastGitTagCommitIdReference = git rev-list -n 1 $lastGitTag
         Write-Verbose "CommitId = $lastGitTagCommitIdReference pointing to the last tag $lastGitTag."
 
-        Write-Verbose "Release version corresponds to latest tag version for the reference commitId=$($refCommitId)"
+        Write-Verbose "Release version corresponds to latest tag version for the reference commitId=$($commit)"
         [version]$releaseVersion = $lastGitTagVer
 
     }
@@ -322,7 +324,7 @@ elseif ($sourceBranchName -like "master") {
 
 # In case of wrong branch name was used, throw an exception
 else {
-    Write-Error "Type of the branch $sourceGitBranch could not be defined!";
+    Write-Error "Type of the branch $branch could not be defined!";
     Write-Warning "Please validate branch name.";
     Exit 1;
 }
@@ -332,8 +334,8 @@ Write-Verbose "Generated release version: $releaseVersion"
 #get back to the previous location
 Set-Location $initialLocation
 
-# set new environment variable releaseVersion
-$Env:releaseVersion = $releaseVersion
+# set new environment variable RELEASE_VERSION
+$Env:RELEASE_VERSION = $releaseVersion
 
 return $releaseVersion
 
