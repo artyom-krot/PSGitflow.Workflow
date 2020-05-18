@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.2
+.VERSION 1.3
 
 .GUID d8aefbbf-d092-433b-8baa-3db3256a8734
 
@@ -12,6 +12,7 @@
 
 .RELEASENOTES 
     1.2: quick hotfix Where-Object { $_ -match "^release\/\d+\.\d+$" }
+    1.3: quick hotfix Where-Object { $_ -match "^release\/\d+\.\d+$" }
 
 Script file name:
 
@@ -224,7 +225,7 @@ elseif ($sourceBranchName -like "develop" -or $sourceBranchName -like "feature/*
 
     Write-Verbose "Processing source branch name: $sourceBranchName."
     
-    $latestReleaseBranch = [array]($remoteBranchesList | Where-Object { $_ -like "*release/*" } | Sort-Object -Property $semVerMajor, $semVerMinor | Select-Object -Last 1)
+    $latestReleaseBranch = [array]($remoteBranchesList | Where-Object { $_ -match "release\/\d+\.\d+$" } | Sort-Object -Property $semVerMajor, $semVerMinor | Select-Object -Last 1)
     
     if($latestReleaseBranch)
     {
