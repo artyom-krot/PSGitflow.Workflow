@@ -1,15 +1,17 @@
 <#PSScriptInfo
 
-.VERSION 1.1
+.VERSION 1.2
 
 .GUID d8aefbbf-d092-433b-8baa-3db3256a8734
 
 .AUTHOR Artsiom Krot
 
-.COPYRIGHT
-Copyright (c) 2019 Artsiom Krot. All rights reserved.
+.COPYRIGHT Copyright (c) 2020 Artsiom Krot. All rights reserved.
 
 .PROJECTURI https://github.com/artyom-krot/PSGitflow.Workflow
+
+.RELEASENOTES 
+    1.2: quick hotfix Where-Object { $_ -match "^release\/\d+\.\d+$" }
 
 Script file name:
 
@@ -258,7 +260,7 @@ elseif ($sourceBranchName -like "bugfix/*") {
         $major = @{Expression={if ($_ -match '(\d+)\.(\d+)') {[int]$Matches[1]}}; Ascending=$true}
         $minor = @{Expression={if ($_ -match '(\d+)\.(\d+)') {[int]$Matches[2]}}; Ascending=$true}
 
-        $latestReleaseBranch = [array]($remoteBranchesList | Where-Object { $_ -like "*release/*" } | Sort-Object -Property $major, $minor | Select-Object -Last 1)
+        $latestReleaseBranch = [array]($remoteBranchesList | Where-Object { $_ -match "release\/\d+\.\d+$" } | Sort-Object -Property $major, $minor | Select-Object -Last 1)
     
         if($latestReleaseBranch)
         {
@@ -276,7 +278,7 @@ elseif ($sourceBranchName -like "bugfix/*") {
 
     # in case bugfix branch was created from release/* branch, patch version should be increased.
     else {
-        $allReleaseBranches = $remoteBranchesList.Replace("origin/","") | Where-Object { $_ -like "*release/*" }
+        $allReleaseBranches = $remoteBranchesList.Replace("origin/","") | Where-Object { $_ -match "^release\/\d+\.\d+$" }
 
         foreach ($releaseBranch in $allReleaseBranches) {
 
