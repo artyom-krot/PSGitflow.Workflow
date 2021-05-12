@@ -70,7 +70,7 @@ Function New-ReleaseVersion {
                 from the release branch will be applied and patch version will be increases {majorVersion}.{minorVersion}.1
         (Example: most recent release branch - release/1.1 => releaseVersion 1.1.1 will be generated)
 
-    Case 6# branch = master:
+    Case 6# branch = master/main:
     check existance of any release tag
     get the version from the latest release tag 
         
@@ -300,7 +300,7 @@ elseif ($sourceBranchName -like "bugfix/*") {
 }
 
 # Case 6# branch = master
-elseif ($sourceBranchName -like "master") {
+elseif ($sourceBranchName -like "master" -or $sourceBranchName -like "main") {
 
     Write-Verbose "Processing source branch name: $sourceBranchName."
     
